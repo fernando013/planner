@@ -37,6 +37,8 @@ const tasks = new Map([
   }]
 ]);
 
+app.locals.taskStore = tasks;
+
 // GET /tasks - "endpoint" que recupera todas as tarefas.
 app.get("/tasks", (req, res) => {
   const allTasks = [];
@@ -55,6 +57,54 @@ app.get("/tasks/:id", (req, res) => {
     return res.status(404).json({ error: "Task not found" });
   }
 
+  res.json(task);
+});
+
+app.patch("/tasks/:id/completion-date", (req, res) => {
+  /* #swagger.requestBody = {
+    required: true,
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            completionDate: {
+              type: 'string',
+              nullable: true,
+              example: '14/10/2026'
+            }
+          },
+          required: ['completionDate']
+        }
+      }
+    }
+  } */
+  const id = Number(req.params.id);
+  const task = tasks.get(id);
+
+  if (!task) {
+    return res.status(404).json({ error: "Task not found" });
+  }
+
+  const completionDate = req.body?.completionDate;
+  if (completionDate !== null && (typeof completionDate !== "string" || !completionDate.trim())) {
+    return res.status(400).json({ error: "A valid completionDate is required" });
+  }
+
+  task.completionDate = completionDate;
+  res.json(task);
+});
+
+app.patch("/tasks/:id/reopen", (req, res) => {
+  const id = Number(req.params.id);
+  const task = tasks.get(id);
+
+  if (!task) {
+    return res.status(404).json({ error: "Task not found" });
+  }
+
+  task.completed = false;
+  task.completionDate = null;
   res.json(task);
 });
 
